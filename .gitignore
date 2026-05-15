@@ -1,2 +1,4 @@
 builddir/
+build/
 .vscode/
+.cache/

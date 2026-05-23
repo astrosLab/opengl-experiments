@@ -1,19 +1,24 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <math.h>
 
 const char *vertexShaderSource =
 	"#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
+    "layout (location = 1) in vec3 aColor;\n"
+    "out vec3 vColor;\n"
     "void main() {\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   vColor = aColor;\n"
     "}\0";
 
 const char *fragmentShaderSource =
 	"#version 330 core\n"
 	"out vec4 FragColor;\n"
+	"in vec3 vColor;\n"
 	"void main() {\n"
-	"	FragColor = vec4(0.9f, 0.0f, 0.0f, 1.0f);\n"
+	"	FragColor = vec4(vColor, 1.0);\n"
 	"}\0";
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -26,7 +31,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(600, 400, "opengl", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "opengl", NULL, NULL);
     if (window == NULL) {
         std::cout << "Error: Failed to create GLFW window." << std::endl;
         glfwTerminate();
@@ -39,19 +44,18 @@ int main() {
         return -1;
     }
 
-    glViewport(0, 0, 800, 600);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glViewport(0, 0, 800, 600);
 
 	// Vertex Data
 	float vertices[] = {
-		 0.5f,  0.5f, 0.0f,  // top right
-		 0.5f, -0.5f, 0.0f,  // bottom right
-		-0.5f, -0.5f, 0.0f,  // bottom left
-		-0.5f,  0.5f, 0.0f   // top left 
+	//   positions           colors
+		 0.0f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
+		 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,
 	};
 	unsigned int indices[] = {
-		0, 1, 3,
-		1, 2, 3,
+		0, 1, 2,
 	};
 
 	// Vertex Buffer Object
@@ -123,8 +127,12 @@ int main() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// Set Vertex Attribute Pointers
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	// position
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	// color
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// Run Window
     while (!glfwWindowShouldClose(window)) {
@@ -136,7 +144,8 @@ int main() {
 
 		// Use Shader Program when Rendering an Object
 		glUseProgram(shaderProgram);
-		// 
+
+		// Bind Vertex Array
 		glBindVertexArray(VertArrObj);
 		// Bind Element Buffer
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffObj);

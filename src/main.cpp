@@ -4,6 +4,9 @@
 #include <math.h>
 #include <shader.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
@@ -32,14 +35,34 @@ int main() {
 
 	// Vertex Data
 	float vertices[] = {
-	//   positions           colors
-		 0.0f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,
+	//   positions           colors            texture coords
+		 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+		 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 	};
+
 	unsigned int indices[] = {
 		0, 1, 2,
+		3, 0, 2,
 	};
+
+	// Texture Setup
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	stbi_set_flip_vertically_on_load(true);
+	int width, height, nrChannels;
+	unsigned char *data = stbi_load(
+		(std::string(TEXTURE_DIR) + "/hashbrown.png").c_str(),
+		&width, &height, &nrChannels, 0
+	);
 
 	// Vertex Buffer Object
 	unsigned int VertBuffObj;
@@ -70,13 +93,25 @@ int main() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffObj);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+	// Bind Texture
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else {
+		std::cout << "Error: Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+
 	// Set Vertex Attribute Pointers
 	// position
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// color
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	// texture
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	// Run Window
     while (!glfwWindowShouldClose(window)) {
@@ -89,6 +124,8 @@ int main() {
 		// Use Shader Program when Rendering an Object
 		ourShader.use();
 
+		// Bind Texture
+		glBindTexture(GL_TEXTURE_2D, texture);
 		// Bind Vertex Array
 		glBindVertexArray(VertArrObj);
 		// Bind Element Buffer

@@ -48,22 +48,47 @@ int main() {
 	};
 
 	// Texture Setup
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	unsigned int texture0, texture1;
 
+	glGenTextures(1, &texture0);
+	glBindTexture(GL_TEXTURE_2D, texture0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
 	stbi_set_flip_vertically_on_load(true);
-	int width, height, nrChannels;
-	unsigned char *data = stbi_load(
+	int width0, height0, nrChannels0;
+	unsigned char* data = stbi_load(
 		(std::string(TEXTURE_DIR) + "/hashbrown.png").c_str(),
-		&width, &height, &nrChannels, 0
+		&width0, &height0, &nrChannels0, 0
 	);
-
+    if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width0, height0, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else {
+		std::cout << "Error: Failed to load texture 0" << std::endl;
+	}
+	stbi_image_free(data);
+	
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	int width1, height1, nrChannels1;
+    data = stbi_load(
+		(std::string(TEXTURE_DIR) + "/awesomeface.png").c_str(),
+		&width1, &height1, &nrChannels1, 0
+	);
+    if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width1, height1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else {
+		std::cout << "Error: Failed to load texture 1" << std::endl;
+	}
+	stbi_image_free(data);
+	
 	// Vertex Buffer Object
 	unsigned int VertBuffObj;
 	glGenBuffers(1, &VertBuffObj);
@@ -93,15 +118,6 @@ int main() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffObj);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	// Bind Texture
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	} else {
-		std::cout << "Error: Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-
 	// Set Vertex Attribute Pointers
 	// position
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -113,6 +129,10 @@ int main() {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
+	ourShader.use();
+    ourShader.setInt("texture0", 0);
+    ourShader.setInt("texture1", 1);
+
 	// Run Window
     while (!glfwWindowShouldClose(window)) {
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -121,11 +141,14 @@ int main() {
 		glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Use Shader Program when Rendering an Object
-		ourShader.use();
-
 		// Bind Texture
-		glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture0);
+        glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		
+		// Use Shader Program when Rendering an Object
+        ourShader.use();
 		// Bind Vertex Array
 		glBindVertexArray(VertArrObj);
 		// Bind Element Buffer

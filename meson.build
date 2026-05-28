@@ -23,9 +23,6 @@ includes = include_directories(
 shader_dir = meson.project_source_root() / 'shaders'
 texture_dir = meson.project_source_root() / 'textures'
 
-run_command('cp', '-r', 'shaders', meson.current_build_dir(), check: true)
-run_command('cp', '-r', 'textures', meson.current_build_dir(), check: true)
-
 # Executable File
 executable(
     'opengl',

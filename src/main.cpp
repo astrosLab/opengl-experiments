@@ -52,7 +52,7 @@ int main() {
 	};
 
 	// Texture Setup
-	unsigned int texture0, texture1;
+	unsigned int texture0;
 
 	glGenTextures(1, &texture0);
 	glBindTexture(GL_TEXTURE_2D, texture0);
@@ -71,25 +71,6 @@ int main() {
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else {
 		std::cout << "Error: Failed to load texture 0" << std::endl;
-	}
-	stbi_image_free(data);
-	
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	int width1, height1, nrChannels1;
-    data = stbi_load(
-		(std::string(TEXTURE_DIR) + "/awesomeface.png").c_str(),
-		&width1, &height1, &nrChannels1, 0
-	);
-    if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width1, height1, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	} else {
-		std::cout << "Error: Failed to load texture 1" << std::endl;
 	}
 	stbi_image_free(data);
 	
@@ -135,7 +116,6 @@ int main() {
 
 	ourShader.use();
     ourShader.setInt("texture0", 0);
-    ourShader.setInt("texture1", 1);
 
 	// Run Window
     while (!glfwWindowShouldClose(window)) {
@@ -156,8 +136,6 @@ int main() {
 		// Bind Texture
         glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture0);
-        glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture1);
 		
 		// Use Shader Program when Rendering an Object
         ourShader.use();

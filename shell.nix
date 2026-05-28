@@ -9,5 +9,6 @@ pkgs.mkShell {
         ninja
         glfw3
         libGL
+        glm
     ];
 }

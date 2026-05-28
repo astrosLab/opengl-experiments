@@ -7,6 +7,7 @@ project(
 # Dependencies
 glfw_dep = dependency('glfw3', version : '>=3.3')
 gl_dep = dependency('opengl')
+glm_dep = dependency('glm')
 
 # Source Files
 sources = files(

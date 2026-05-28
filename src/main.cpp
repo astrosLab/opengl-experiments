@@ -1,5 +1,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
 #include <math.h>
 #include <shader.h>
@@ -140,6 +144,14 @@ int main() {
 
 		glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        glUniformMatrix4fv(
+            glGetUniformLocation(ourShader.ID, "transform"),
+            1, GL_FALSE, glm::value_ptr(trans)
+        );
 
 		// Bind Texture
         glActiveTexture(GL_TEXTURE0);
